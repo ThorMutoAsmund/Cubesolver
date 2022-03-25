@@ -1,0 +1,11 @@
+
+
+Corners that go from U/D (0) -> R/L (1) when rotated clockwise
+
+URB
+ULF
+
+Corners that go from U/D (0) -> F/B (2) when rotated clockwise
+
+UFR
+UBL
