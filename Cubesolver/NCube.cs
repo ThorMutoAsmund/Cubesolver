@@ -209,8 +209,8 @@ namespace Cubesolver
             var one = p1 | p2;
             var mask1 = ~(one << 2);
             var mask2 = one << 1;
-            var three = mask2 | one;
-            this.C = (this.C + three - (((this.C + three) & mask2) >> 1) ) & mask1;
+            var three = this.C + (mask2 | one);
+            this.C = (three - ((three & mask2) >> 1) ) & mask1;
         }
 
         public void Turn(int t)
