@@ -10,60 +10,70 @@ namespace Cubesolver
     public struct NCube //: IEquatable<NCube>
     {
         // Corner indices
-        public static int pUBL = 0;
-        public static int pURB = 1;
-        public static int pUFR = 2;
-        public static int pULF = 3;
-        public static int pDLB = 4;
-        public static int pDBR = 5;
-        public static int pDRF = 6;
-        public static int pDFL = 7;
+        public const int pUBL = 0;
+        public const int pURB = 1;
+        public const int pUFR = 2;
+        public const int pULF = 3;
+        public const int pDLB = 4;
+        public const int pDBR = 5;
+        public const int pDRF = 6;
+        public const int pDFL = 7;
 
         // Corner indices times 6
-        public static int p6UBL = 0;
-        public static int p6URB = 6;
-        public static int p6UFR = 12;
-        public static int p6ULF = 18;
-        public static int p6DLB = 24;
-        public static int p6DBR = 30;
-        public static int p6DRF = 36;
-        public static int p6DFL = 42;
+        public const int p6UBL = 0;
+        public const int p6URB = 6;
+        public const int p6UFR = 12;
+        public const int p6ULF = 18;
+        public const int p6DLB = 24;
+        public const int p6DBR = 30;
+        public const int p6DRF = 36;
+        public const int p6DFL = 42;
+
+        public const UInt64 ps6UBL = 1UL << 3;
+        public const UInt64 ps6URB = 1UL << 9;
+        public const UInt64 ps6UFR = 1UL << 15;
+        public const UInt64 ps6ULF = 1UL << 21;
+        public const UInt64 ps6DLB = 1UL << 27;
+        public const UInt64 ps6DBR = 1UL << 33;
+        public const UInt64 ps6DRF = 1UL << 39;
+        public const UInt64 ps6DFL = 1UL << 45;
+
 
         // Edge indices
-        public static int pUB = 0;
-        public static int pUR = 1;
-        public static int pUF = 2;
-        public static int pUL = 3;
-        public static int pBL = 4;
-        public static int pBR = 5;
-        public static int pFR = 6;
-        public static int pFL = 7;
-        public static int pDB = 8;
-        public static int pDR = 9;
-        public static int pDF = 10;
-        public static int pDL = 11;
+        public const int pUB = 0;
+        public const int pUR = 1;
+        public const int pUF = 2;
+        public const int pUL = 3;
+        public const int pBL = 4;
+        public const int pBR = 5;
+        public const int pFR = 6;
+        public const int pFL = 7;
+        public const int pDB = 8;
+        public const int pDR = 9;
+        public const int pDF = 10;
+        public const int pDL = 11;
 
         // Edge indices times 5
-        public static int p5UB = 0;
-        public static int p5UR = 5;
-        public static int p5UF = 10;
-        public static int p5UL = 15;
-        public static int p5BL = 20;
-        public static int p5BR = 25;
-        public static int p5FR = 30;
-        public static int p5FL = 35;
-        public static int p5DB = 40;
-        public static int p5DR = 45;
-        public static int p5DF = 50;
-        public static int p5DL = 55;
+        public const int p5UB = 0;
+        public const int p5UR = 5;
+        public const int p5UF = 10;
+        public const int p5UL = 15;
+        public const int p5BL = 20;
+        public const int p5BR = 25;
+        public const int p5FR = 30;
+        public const int p5FL = 35;
+        public const int p5DB = 40;
+        public const int p5DR = 45;
+        public const int p5DF = 50;
+        public const int p5DL = 55;
 
         // Faces
-        public static byte fB = 0;
-        public static byte fF = 1;
-        public static byte fU = 2;
-        public static byte fD = 3;
-        public static byte fR = 4;
-        public static byte fL = 5;
+        public const byte fB = 0;
+        public const byte fF = 1;
+        public const byte fU = 2;
+        public const byte fD = 3;
+        public const byte fR = 4;
+        public const byte fL = 5;
 
         // Turns
         public const int tU = 0;
@@ -99,14 +109,14 @@ namespace Cubesolver
 
         // Corner orientation:
         // 0 = U or D sticker has U or D color
-        // 1 = U or D sticker has R or L color
-        // 2 = U or D sticker has F or B color
+        // 1 = U or D sticker has color one color CCW of the U or D color
+        // 2 = U or D sticker has color one color CW of the U or D color
 
 
         // EO definition
         // An edge is defined as oriented if it can be solved using only R, L, U and D face turns.
         // If an edge cannot be solved using these face turns then it is a misoriented or 'bad' edge.
-        
+
         // EO detection
         // If the sticker has L/R color facing U/D it's a bad edge.
         // If the sticker has F/B color facing U/D, look at the sticker on the other side of the edge, if the side sticker has U/D color, it's a bad edge.
@@ -186,22 +196,21 @@ namespace Cubesolver
             this.E = this.E ^ ((1UL << p1 | 1UL << p2 | 1UL << p3 | 1UL << p4) << 4);
         }
 
-        void OrientCorners_CCW(int p1, int p2)
+        void OrientCorners_CCW(UInt64 p1, UInt64 p2)
         {
-            var one = (1UL << p1 | 1UL << p2) << 3;
+            var one = p1 | p2;
             var mask1 = ~(one << 2);
             var mask2 = one << 1;
             this.C = (this.C + one + ((this.C & mask2) >> 1)) & mask1;
-
         }
 
-        void OrientCorners_CW(int p1, int p2)
+        void OrientCorners_CW(UInt64 p1, UInt64 p2)
         {
-            var one = (1UL << p1 | 1UL << p2) << 3;
-            var three = (3UL << p1 | 3UL << p2) << 3;
+            var one = p1 | p2;
             var mask1 = ~(one << 2);
             var mask2 = one << 1;
-            this.C = (this.C + three - (((this.C + three) & mask2) >>1) ) & mask1;
+            var three = mask2 | one;
+            this.C = (this.C + three - (((this.C + three) & mask2) >> 1) ) & mask1;
         }
 
         public void Turn(int t)
@@ -232,8 +241,8 @@ namespace Cubesolver
                     SwapEdges(p5UF, p5DF);
                     SwapEdges(p5UF, p5FL);
                     OrientEdges(p5UF, p5FR, p5DF, p5FL);
-                    OrientCorners_CCW(p6ULF, p6DRF);
-                    OrientCorners_CW(p6UFR, p6DFL);
+                    OrientCorners_CCW(ps6ULF, ps6DRF);
+                    OrientCorners_CW(ps6UFR, ps6DFL);
                     break;
                 case iF:
                     SwapCorners(p6ULF, p6DFL);
@@ -243,8 +252,8 @@ namespace Cubesolver
                     SwapEdges(p5UF, p5DF);
                     SwapEdges(p5UF, p5FR);
                     OrientEdges(p5UF, p5FR, p5DF, p5FL);
-                    OrientCorners_CW(p6ULF, p6DRF);
-                    OrientCorners_CCW(p6UFR, p6DFL);  
+                    OrientCorners_CW(ps6ULF, ps6DRF);
+                    OrientCorners_CCW(ps6UFR, ps6DFL);  
                     break;
             }
         }
