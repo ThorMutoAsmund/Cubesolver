@@ -38,7 +38,6 @@ namespace Cubesolver
         public const UInt64 ps6DRF = 1UL << 39;
         public const UInt64 ps6DFL = 1UL << 45;
 
-
         // Edge indices
         public const int pUB = 0;
         public const int pUR = 1;
@@ -213,6 +212,17 @@ namespace Cubesolver
             this.C = (three - ((three & mask2) >> 1) ) & mask1;
         }
 
+        void OrientCorners(UInt64 ccw1, UInt64 ccw2, UInt64 cw1, UInt64 cw2)
+        {
+            var ccw = ccw1 | ccw2;
+            var cw = cw1 | cw2;
+
+            var cwx2 = cw << 1;
+            var three = this.C + ccw + (this.C >> 1 & ccw) + (cwx2 | cw);
+            var mask = ~((cw | ccw) << 2);
+            this.C = (three - ((three & cwx2) >> 1)) & mask;
+        }
+
         public void Turn(int t)
         {
             switch (t)
@@ -233,6 +243,22 @@ namespace Cubesolver
                     SwapEdges(p5UB, p5UF);
                     SwapEdges(p5UB, p5UR);
                     break;
+                case tD:
+                    SwapCorners(p6DLB, p6DFL);
+                    SwapCorners(p6DLB, p6DRF);
+                    SwapCorners(p6DLB, p6DBR);
+                    SwapEdges(p5DB, p5DL);
+                    SwapEdges(p5DB, p5DF);
+                    SwapEdges(p5DB, p5DR);
+                    break;
+                case iD:
+                    SwapCorners(p6DLB, p6DBR);
+                    SwapCorners(p6DLB, p6DRF);
+                    SwapCorners(p6DLB, p6DFL);
+                    SwapEdges(p5DB, p5DR);
+                    SwapEdges(p5DB, p5DF);
+                    SwapEdges(p5DB, p5DL);
+                    break;
                 case tF:
                     SwapCorners(p6ULF, p6UFR);
                     SwapCorners(p6ULF, p6DRF);
@@ -241,8 +267,7 @@ namespace Cubesolver
                     SwapEdges(p5UF, p5DF);
                     SwapEdges(p5UF, p5FL);
                     OrientEdges(p5UF, p5FR, p5DF, p5FL);
-                    OrientCorners_CCW(ps6ULF, ps6DRF);
-                    OrientCorners_CW(ps6UFR, ps6DFL);
+                    OrientCorners(ps6ULF, ps6DRF, ps6UFR, ps6DFL);
                     break;
                 case iF:
                     SwapCorners(p6ULF, p6DFL);
@@ -252,8 +277,63 @@ namespace Cubesolver
                     SwapEdges(p5UF, p5DF);
                     SwapEdges(p5UF, p5FR);
                     OrientEdges(p5UF, p5FR, p5DF, p5FL);
-                    OrientCorners_CW(ps6ULF, ps6DRF);
-                    OrientCorners_CCW(ps6UFR, ps6DFL);  
+                    OrientCorners(ps6ULF, ps6DRF, ps6UFR, ps6DFL);
+                    break;
+                case tB:
+                    SwapCorners(p6UBL, p6DLB);
+                    SwapCorners(p6UBL, p6DBR);
+                    SwapCorners(p6UBL, p6URB);
+                    SwapEdges(p5UB, p5BL);
+                    SwapEdges(p5UB, p5DB);
+                    SwapEdges(p5UB, p5BR);
+                    OrientEdges(p5UB, p5BL, p5DB, p5BR);
+                    OrientCorners(ps6DLB, ps6URB, ps6UBL, ps6DBR);
+                    break;
+                case iB:
+                    SwapCorners(p6UBL, p6URB);
+                    SwapCorners(p6UBL, p6DBR);
+                    SwapCorners(p6UBL, p6DLB);
+                    SwapEdges(p5UB, p5BR);
+                    SwapEdges(p5UB, p5DB);
+                    SwapEdges(p5UB, p5BL);
+                    OrientEdges(p5UB, p5BL, p5DB, p5BR);
+                    OrientCorners(ps6DLB, ps6URB, ps6UBL, ps6DBR);
+                    break;
+                case tR:
+                    SwapCorners(p6UFR, p6URB);
+                    SwapCorners(p6UFR, p6DBR);
+                    SwapCorners(p6UFR, p6DRF);
+                    SwapEdges(p5UR, p5BR);
+                    SwapEdges(p5UR, p5DR);
+                    SwapEdges(p5UR, p5FR);
+                    OrientCorners(ps6UFR, ps6DBR, ps6URB, ps6DRF);
+                    break;
+                case iR:
+                    SwapCorners(p6UFR, p6DRF);
+                    SwapCorners(p6UFR, p6DBR);
+                    SwapCorners(p6UFR, p6URB);
+                    SwapEdges(p5UR, p5FR);
+                    SwapEdges(p5UR, p5DR);
+                    SwapEdges(p5UR, p5BR);
+                    OrientCorners(ps6UFR, ps6DBR, ps6URB, ps6DRF);
+                    break;
+                case tL:
+                    SwapCorners(p6UBL, p6ULF);
+                    SwapCorners(p6UBL, p6DFL);
+                    SwapCorners(p6UBL, p6DLB);
+                    SwapEdges(p5UL, p5FL);
+                    SwapEdges(p5UL, p5DL);
+                    SwapEdges(p5UL, p5BL);
+                    OrientCorners(ps6UBL, ps6DFL, ps6ULF, ps6DLB);
+                    break;
+                case iL:
+                    SwapCorners(p6UBL, p6DLB);
+                    SwapCorners(p6UBL, p6DFL);
+                    SwapCorners(p6UBL, p6ULF);
+                    SwapEdges(p5UL, p5BL);
+                    SwapEdges(p5UL, p5DL);
+                    SwapEdges(p5UL, p5FL);
+                    OrientCorners(ps6UBL, ps6DFL, ps6ULF, ps6DLB);
                     break;
             }
         }

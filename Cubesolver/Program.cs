@@ -12,27 +12,62 @@ namespace Cubesolver
 
         static void Main(string[] args)
         {
-            var n = NCube.Id;
+            var cube = NCube.Id;
 
-            ConsoleKeyInfo k;
+            Stopwatch stopWatch = new Stopwatch();
+            int cnt = 10000000;
+            stopWatch.Start();
+            var rand = new Random();
+            int r;
+            while (cnt > 0)
+            {
+                r = rand.Next(12);
+                cube.Turn(r);
+                cnt--;
+            }
+            stopWatch.Stop();
+
+            cube.Display();
+            Console.WriteLine($"Exceution time: {stopWatch.Elapsed} ms");
+
+            Console.ReadKey();
+        }
+
+        static void Demo()
+        { 
+            var cube = NCube.Id;
+
+            ConsoleKeyInfo keyInfo;
             do
             {
                 Console.Clear();
-                n.Display();
-                k = Console.ReadKey();
+                cube.Display();
+                keyInfo = Console.ReadKey();
 
-                switch (k.Key)
+                switch (keyInfo.Key)
                 {
                     case ConsoleKey.U:
-                        n.Turn(k.Modifiers.HasFlag(ConsoleModifiers.Shift) ? NCube.iU : NCube.tU);
+                        cube.Turn(keyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) ? NCube.iU : NCube.tU);
+                        break;
+                    case ConsoleKey.D:
+                        cube.Turn(keyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) ? NCube.iD : NCube.tD);
                         break;
                     case ConsoleKey.F:
-                        n.Turn(k.Modifiers.HasFlag(ConsoleModifiers.Shift) ? NCube.iF : NCube.tF);
+                        cube.Turn(keyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) ? NCube.iF : NCube.tF);
+                        break;
+                    case ConsoleKey.B:
+                        cube.Turn(keyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) ? NCube.iB : NCube.tB);
+                        break;
+                    case ConsoleKey.R:
+                        cube.Turn(keyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) ? NCube.iR : NCube.tR);
+                        break;
+                    case ConsoleKey.L:
+                        cube.Turn(keyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) ? NCube.iL : NCube.tL);
                         break;
                 }
 
             }
-            while (k.Key != ConsoleKey.Escape && k.Key != ConsoleKey.Q);
+            while (keyInfo.Key != ConsoleKey.Escape && keyInfo.Key != ConsoleKey.Q);
         }
     }
 }
