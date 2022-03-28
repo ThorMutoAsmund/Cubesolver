@@ -12,17 +12,32 @@ namespace Cubesolver
 
         static void Main(string[] args)
         {
+            //Demo();
+            //SpeedTest();
+            PathFinder();
+        }
+
+
+        static void PathFinder()
+        {
+            var pf = new NPathFinder();
+
+            pf.GenerateBaseSet(3);
+        }
+
+        static void SpeedTest()
+        { 
             var cube = NCube.Id;
 
             Stopwatch stopWatch = new Stopwatch();
-            int cnt = 100000000;
+            int cnt = 200000000;
             stopWatch.Start();
             var rand = new Random();
             int r;
             while (cnt > 0)
             {
                 //r = rand.Next(12);  
-                // iB 13.4 sek
+                // iB 12.6 sek
                 cube.Turn(NCube.iB);
                 cnt--;
             }
@@ -48,22 +63,22 @@ namespace Cubesolver
                 switch (keyInfo.Key)
                 {
                     case ConsoleKey.U:
-                        cube.Turn(keyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) ? NCube.iU : NCube.tU);
+                        cube.Turn(keyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) ? (keyInfo.Modifiers.HasFlag(ConsoleModifiers.Control) ? NCube.dU : NCube.iU) : NCube.tU);
                         break;
                     case ConsoleKey.D:
-                        cube.Turn(keyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) ? NCube.iD : NCube.tD);
+                        cube.Turn(keyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) ? (keyInfo.Modifiers.HasFlag(ConsoleModifiers.Control) ? NCube.dD : NCube.iD) : NCube.tD);
                         break;
                     case ConsoleKey.F:
-                        cube.Turn(keyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) ? NCube.iF : NCube.tF);
+                        cube.Turn(keyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) ? (keyInfo.Modifiers.HasFlag(ConsoleModifiers.Control) ? NCube.dF : NCube.iF) : NCube.tF);
                         break;
                     case ConsoleKey.B:
-                        cube.Turn(keyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) ? NCube.iB : NCube.tB);
+                        cube.Turn(keyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) ? (keyInfo.Modifiers.HasFlag(ConsoleModifiers.Control) ? NCube.dB : NCube.iB) : NCube.tB);
                         break;
                     case ConsoleKey.R:
-                        cube.Turn(keyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) ? NCube.iR : NCube.tR);
+                        cube.Turn(keyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) ? (keyInfo.Modifiers.HasFlag(ConsoleModifiers.Control) ? NCube.dR : NCube.iR) : NCube.tR);
                         break;
                     case ConsoleKey.L:
-                        cube.Turn(keyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) ? NCube.iL : NCube.tL);
+                        cube.Turn(keyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) ? (keyInfo.Modifiers.HasFlag(ConsoleModifiers.Control) ? NCube.dL : NCube.iL) : NCube.tL);
                         break;
                 }
 
