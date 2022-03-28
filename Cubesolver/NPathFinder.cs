@@ -9,35 +9,34 @@ namespace Cubesolver
 {
     public class NPathFinder
     {
-        public const int trNN = -1;
-        public const int tr00 = 0;   // R U R'
-        public const int tr01 = 1;   // R U2 R'
-        public const int tr02 = 2;   // R U' R'
-        public const int tr03 = 3;   // R' U' R
-        public const int tr04 = 4;   // R' U R
-        public const int tr05 = 5;   // R' U2 R
-        public const int tr06 = 6;   // R' D R
-        public const int tr07 = 7;   // R' D' R
-        public const int tr08 = 8;   // R D R'
-        public const int tr09 = 9;   // R D' R'
-        public const int tr10 = 10; // R' U' R'
-        public const int tr11 = 11; // R' U R'
-        public const int tr12 = 12; // R U' R
-        public const int tr13 = 13; // R U R
-        public const int tr14 = 14; // R2 D' R2
-        public const int tr15 = 15; // R2 D R2
-        public const int tr16 = 16; // R' F R
-        public const int tr17 = 17; // R' F' R'
-        public const int tr18 = 18; // F
-        public const int tr19 = 19; // F'
-        public const int tr20 = 20; // R
-        public const int tr21 = 21; // R'
-        public const int tr22 = 22; // U
-        public const int tr23 = 23; // U'
-        public const int tr24 = 24; // U2
-        public const int tr25 = 25; // D
-        public const int tr26 = 26; // D'
-        public const int numtriggers = tr26 + 1;
+        public const int trNN = 0;
+        public const int tr00 = 1;   // R U R'
+        public const int tr01 = 2;   // R U2 R'
+        public const int tr02 = 3;   // R U' R'
+        public const int tr03 = 4;   // R' U' R
+        public const int tr04 = 5;   // R' U R
+        public const int tr05 = 6;   // R' U2 R
+        public const int tr06 = 7;   // R' D R
+        public const int tr07 = 8;   // R' D' R
+        public const int tr08 = 9;   // R D R'
+        public const int tr09 = 10;   // R D' R'
+        public const int tr10 = 11; // R' U' R'
+        public const int tr11 = 12; // R' U R'
+        public const int tr12 = 13; // R U' R
+        public const int tr13 = 14; // R U R
+        public const int tr14 = 15; // R2 D' R2
+        public const int tr15 = 16; // R2 D R2
+        public const int tr16 = 17; // R' F R
+        public const int tr17 = 18; // R' F' R'
+        public const int tr18 = 19; // F
+        public const int tr19 = 20; // F'
+        public const int tr20 = 21; // R
+        public const int tr21 = 22; // R'
+        public const int tr22 = 23; // U
+        public const int tr23 = 24; // U'
+        public const int tr24 = 25; // U2
+        public const int tr25 = 26; // D
+        public const int tr26 = 27; // D'
 
         private static int[,] triggerMoves = 
         {
@@ -72,37 +71,35 @@ namespace Cubesolver
 
         private static int[,] allowedTriggers =
         {
-            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr16, tr17, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr16, tr17, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr16, tr17, tr08, tr09, tr12, tr13, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr16, tr17, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr16, tr17, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr16, tr17, tr06, tr07, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr16, tr17, tr06, tr07, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr18, tr19, tr20, tr21, tr22, tr23, tr24, tr25, tr26},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr18, tr19, tr20, tr21, tr22, tr23, tr24, tr25, tr26},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr22, tr23, tr24, tr25, tr26},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr22, tr23, tr24, tr25, tr26},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr20, tr21, tr22, tr23, tr24, tr25, tr26},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr20, tr21, tr22, tr23, tr24, tr25, tr26},
-            {tr00, tr01, tr02, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr25, tr26, trNN},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr25, tr26, trNN},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr25, tr26, trNN},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr22, tr23, tr24},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr22, tr23, tr24},
+            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr22, tr23, tr24, tr25, tr26 },
+            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
+            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
+            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
+            {tr00, tr01, tr02, tr16, tr17, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
+            {tr00, tr01, tr02, tr16, tr17, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
+            {tr00, tr01, tr02, tr16, tr17, tr08, tr09, tr12, tr13, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
+            {tr00, tr01, tr02, tr16, tr17, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
+            {tr00, tr01, tr02, tr16, tr17, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
+            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
+            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
+            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
+            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
+            {tr00, tr01, tr02, tr16, tr17, tr06, tr07, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN},
+            {tr00, tr01, tr02, tr16, tr17, tr06, tr07, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN},
+            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr18, tr19, tr20, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN},
+            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr18, tr19, tr20, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN},
+            {tr00, tr01, tr02, tr03, tr04, tr05, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN},
+            {tr00, tr01, tr02, tr03, tr04, tr05, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN},
+            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr20, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN},
+            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr20, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN},
+            {tr00, tr01, tr02, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
+            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
+            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr25, tr26, trNN, trNN, trNN},
+            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr25, tr26, trNN, trNN, trNN},
+            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr25, tr26, trNN, trNN, trNN},
+            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr22, tr23, tr24, trNN, trNN},
+            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr22, tr23, tr24, trNN, trNN},
         };
-
-        private static int[] startTriggers = {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, 
-            tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr22, tr23, tr24, tr25, tr26 };
 
 
         public void GenerateBaseSet(int depth)

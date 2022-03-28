@@ -32,8 +32,6 @@ namespace Cubesolver
             Stopwatch stopWatch = new Stopwatch();
             int cnt = 200000000;
             stopWatch.Start();
-            var rand = new Random();
-            int r;
             while (cnt > 0)
             {
                 //r = rand.Next(12);  
