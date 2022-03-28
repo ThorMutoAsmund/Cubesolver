@@ -15,14 +15,15 @@ namespace Cubesolver
             var cube = NCube.Id;
 
             Stopwatch stopWatch = new Stopwatch();
-            int cnt = 10000000;
+            int cnt = 100000000;
             stopWatch.Start();
             var rand = new Random();
             int r;
             while (cnt > 0)
             {
-                r = rand.Next(12);
-                cube.Turn(r);
+                //r = rand.Next(12);  
+                // iB 13.4 sek
+                cube.Turn(NCube.iB);
                 cnt--;
             }
             stopWatch.Stop();
