@@ -89,11 +89,17 @@ namespace Cubesolver
         public const int tD = 10;
         public const int iD = 11;
         public const int dU = 12;
-        public const int dF = 13;
-        public const int dR = 14;
-        public const int dL = 15;
-        public const int dB = 16;
-        public const int dD = 17;
+        public const int DU = 13;
+        public const int dF = 14;
+        public const int DF = 15;
+        public const int dR = 16;
+        public const int DR = 17;
+        public const int dL = 18;
+        public const int DL = 19;
+        public const int dB = 20;
+        public const int DB = 21;
+        public const int dD = 22;
+        public const int DD = 23;
 
 
         private const UInt64 cornerMask = ((1UL << 6) - 1);
@@ -339,42 +345,43 @@ namespace Cubesolver
                     SwapEdges(p5UL, p5FL);
                     OrientCorners(ps6UBL, ps6DFL, ps6ULF, ps6DLB);
                     break;
-
                 case dU:
+                case DU:
                     SwapCorners(p6UBL, p6UFR);
                     SwapCorners(p6URB, p6ULF);
                     SwapEdges(p5UB, p5UF);
                     SwapEdges(p5UR, p5UL);
                     break;
                 case dD:
+                case DD:
                     SwapCorners(p6DLB, p6DRF);
                     SwapCorners(p6DFL, p6DBR);
                     SwapEdges(p5DB, p5DF);
                     SwapEdges(p5DL, p5DR);
                     break;
-
                 case dF:
+                case DF:
                     SwapCorners(p6ULF, p6DRF);
                     SwapCorners(p6UFR, p6DFL);
                     SwapEdges(p5UF, p5DF);
                     SwapEdges(p5FR, p5FL);
                     break;
-
                 case dB:
+                case DB:
                     SwapCorners(p6UBL, p6DBR);
                     SwapCorners(p6DLB, p6URB);
                     SwapEdges(p5UB, p5DB);
                     SwapEdges(p5BL, p5BR);
                     break;
-
                 case dR:
+                case DR:
                     SwapCorners(p6UFR, p6DBR);
                     SwapCorners(p6URB, p6DRF);
                     SwapEdges(p5UR, p5DR);
                     SwapEdges(p5BR, p5FR);
                     break;
-
                 case dL:
+                case DL:
                     SwapCorners(p6UBL, p6DFL);
                     SwapCorners(p6ULF, p6DLB);
                     SwapEdges(p5UL, p5DL);
@@ -500,6 +507,11 @@ namespace Cubesolver
             Console.WriteLine(); Console.WriteLine();
 
             Console.BackgroundColor = bgColor;
+        }
+
+        public override string ToString()
+        {
+            return this.GetHashCode().ToString();
         }
 
     }

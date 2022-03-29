@@ -22,7 +22,12 @@ namespace Cubesolver
         {
             var pf = new NPathFinder();
 
+            // It took 1:40 to figure out there are 77324656 possible states reachable with depth 6
             pf.GenerateBaseSet(3);
+            //pf.GenerateFile();
+            Console.WriteLine($"Done! Size={pf.KeyStoreSize}");
+
+            Console.ReadKey();
         }
 
         static void SpeedTest()
