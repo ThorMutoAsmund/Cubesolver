@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -113,16 +114,23 @@ namespace Cubesolver
 
         public int Size => this.nstore.Count;
         public int KeyStoreSize => this.keystore.Count;
+        public int KeySetSize => this.keyset.Count;
 
         private Dictionary<int, List<byte[]>> nstore = new Dictionary<int, List<byte[]>>();
-        private HashSet<int> keystore = new HashSet<int>();
+        private Dictionary<int, int> keystore = new Dictionary<int, int>();
+        private HashSet<int> keyset = new HashSet<int>();
 
         public void GenerateBaseSet(int depth)
         {
             this.nstore.Clear();
             this.keystore.Clear();
+            this.keyset.Clear();
 
+            int level;
             var cube = NCube.Id;
+            var bcube = NCube.Id;
+            keystore[cube.GetHashCode()] = 0;
+            keyset.Add(cube.GetHashCode());
             nstore[cube.GetHashCode()] = new List<byte[]>() { new byte[0] };
 
             if (depth <= 0)
@@ -153,11 +161,11 @@ namespace Cubesolver
                 }
             }
 
-            void Rec(int lastTrigger, int level, byte[] lastPath)
+            void DFS(int llevel)//, int lastTrigger, byte[] lastPath)
             {
                 for (int i = 0; i < numTriggers; ++i)
                 {
-                    var trigger = allowedTriggers[/*lastTrigger*/0, i];
+                    var trigger = allowedTriggers[/*lastTrigger*/0, i]; // at least 559 with depth 2
                     if (trigger == trNN)
                     {
                         break;
@@ -178,27 +186,93 @@ namespace Cubesolver
                     {
                         nstore[key].Add(path);
                     }
-                    if (level < depth)
+                    if (llevel < depth)
                     {
-                        Rec(trigger, level + 1, path);
+                        Rec(trigger, llevel + 1, path);
                     }
 #else
-                    if (!this.keystore.Contains(key))
+                    if (!this.keystore.ContainsKey(key))
                     {
-                        this.keystore.Add(key);
-                        if (level < depth - 1)
+                        this.keystore[key] = llevel;
+                        if (llevel < depth - 1)
                         {
-                            Rec(trigger, level + 1, lastPath);
+                            DFS(llevel + 1);//trigger, , lastPath);
                         }
                     }
-
+                    else if (this.keystore[key] > llevel)
+                    {
+                        this.keystore[key] = llevel;
+                        DFS(llevel + 1);//trigger, , lastPath);
+                    }
 #endif
 
                     PerformInverseTrigger(trigger, max);
                 }
             }
 
-            Rec(trNN, 0, new byte[0]);
+            void BFS()
+            {
+                var queue = new List<int>();
+                queue.Add((0<<5) | trNN);
+                var qptr = 0;
+
+                while (qptr < queue.Count)
+                {
+                    level = 0;
+                    cube = NCube.Id;
+
+                    int prev = queue[qptr++];
+                    int trigger = prev & 31;
+                    prev >>= 5;
+                    int lastTrigger = trigger;
+                    while (trigger != trNN)
+                    {
+                        PerformTrigger(trigger);
+                        level++;
+                        if (prev == 0)
+                        {
+                            break;
+                        }
+                        prev = queue[prev];
+                        trigger = prev & 31;
+                        prev >>= 5;
+                    }
+
+                    bcube = cube;
+
+                    for (int i = 0; i < numTriggers; ++i)
+                    {
+                        trigger = allowedTriggers[/*lastTrigger*/0, i];
+                        if (trigger == trNN)
+                        {
+                            break;
+                        }
+
+                        var max = PerformTrigger(trigger);
+                        var key = cube.GetHashCode();
+
+                        if (!this.keyset.Contains(key))
+                        {
+                            this.keyset.Add(key);
+                            if (level < depth - 1)
+                            {
+                                queue.Add(((qptr - 1)<<5) | trigger);
+                            }
+                        }
+
+                        cube = bcube;
+                    }
+
+                }
+
+                var process = System.Diagnostics.Process.GetCurrentProcess();
+                process.Refresh();
+                Console.WriteLine($"MemoryUsed = {process.WorkingSet64 / (1024)} kB");
+            }
+
+
+            BFS();
+            // DFS(0);// trNN, 0, new byte[0]);
         }
 
         public void GenerateFile()
