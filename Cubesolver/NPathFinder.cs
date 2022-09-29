@@ -1,27 +1,49 @@
-﻿using System;
+﻿
+// Ide!
+// Når en ny key er fundet, så gem keyen og et index til det triggerset der skabte den
+// det triggerset har en pointer til NIL
+// Når en eksisterende key findes, så gemmes det nye triggersæt og det forrige triggersæt sættes til at pege på dette
+// Således undgås lister/arrays
+
+
+using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static Cubesolver.NCube;
 
 namespace Cubesolver
 {
+    public class TriggerSetRef
+    {
+        public UInt64 TriggerSet { get; set; }
+        public TriggerSetRef NextTriggerSet { get; set; }
+
+        public TriggerSetRef(UInt64 triggerSet)
+        {
+            this.TriggerSet = triggerSet;
+            this.NextTriggerSet = null;
+        }
+
+        public TriggerSetRef(UInt64 triggerSet, TriggerSetRef prev)
+        {
+            this.TriggerSet = triggerSet;
+            this.NextTriggerSet = prev;
+        }
+    }
+
     public class NPathFinder
     {
         public const byte trNN = 0;
-        public const byte tr00 = 1;   // R U R'
-        public const byte tr01 = 2;   // R U2 R'
-        public const byte tr02 = 3;   // R U' R'
-        public const byte tr03 = 4;   // R' U' R
-        public const byte tr04 = 5;   // R' U R
-        public const byte tr05 = 6;   // R' U2 R
-        public const byte tr06 = 7;   // R' D R
-        public const byte tr07 = 8;   // R' D' R
-        public const byte tr08 = 9;   // R D R'
-        public const byte tr09 = 10;   // R D' R'
+        public const byte tr00 = 1;  // R U R'
+        public const byte tr01 = 2;  // R U2 R'
+        public const byte tr02 = 3;  // R U' R'
+        public const byte tr03 = 4;  // R' U' R
+        public const byte tr04 = 5;  // R' U R
+        public const byte tr05 = 6;  // R' U2 R
+        public const byte tr06 = 7;  // R' D R
+        public const byte tr07 = 8;  // R' D' R
+        public const byte tr08 = 9;  // R D R'
+        public const byte tr09 = 10; // R D' R'
         public const byte tr10 = 11; // R' U' R'
         public const byte tr11 = 12; // R' U R'
         public const byte tr12 = 13; // R U' R
@@ -29,7 +51,7 @@ namespace Cubesolver
         public const byte tr14 = 15; // R2 D' R2
         public const byte tr15 = 16; // R2 D R2
         public const byte tr16 = 17; // R' F R
-        public const byte tr17 = 18; // R' F' R'
+        public const byte tr17 = 18; // R' F' R
         public const byte tr18 = 19; // F
         public const byte tr19 = 20; // F'
         public const byte tr20 = 21; // R
@@ -39,258 +61,484 @@ namespace Cubesolver
         public const byte tr24 = 25; // U2
         public const byte tr25 = 26; // D
         public const byte tr26 = 27; // D'
-        public const byte numTriggers = 27; // D'
+        
+        public const byte tr27 = 28; // r U r'
+        public const byte tr28 = 29; // r U' r'
+        public const byte tr29 = 30; // r' U' r
+        public const byte tr30 = 31; // r' U r
+        public const byte tr31 = 32; // R2 U R2
+        public const byte tr32 = 33; // R2 U' R2
+        public const byte tr33 = 34; // r
+        public const byte tr34 = 35; // r'
+        public const byte tr35 = 36; // S
+        public const byte tr36 = 37; // S'
 
-        private static string[] triggerNames = 
+        public const byte numTriggers = 37;
+
+        private static string[] triggerNames =
             {
             "", "R U R'","R U2 R'","R U' R'","R' U' R","R' U R","R' U2 R","R' D R","R' D' R","R D R'","R D' R'","R' U' R'","R' U R'","R U' R","R U R",
-            "R2 D' R2","R2 D R2","R' F R","R' F' R'","F","F'","R","R'","U","U'","U2","D","D'"
+            "R2 D' R2","R2 D R2","R' F R","R' F' R","F","F'","R","R'","U","U'","U2","D","D'",
+            "r U r'","r U' r'","r' U' r","r' U r","R2 U R2","R2 U' R2", "r", "r'", "S", "S'"
+            };
+        private static string[] inverseTriggerNames =
+            {
+            "", "R U' R'","R U2 R'","R U R'","R' U R","R' U' R","R' U2 R","R' D' R","R' D R","R D' R'","R D R'","R U R","R U' R","R' U R'","R' U' R'",
+            "R2 D R2","R2 D' R2","R' F' R","R' F R","F'","F","R'","R","U'","U","U2","D'","D",
+            "r U' r'","r U r'","r' U r","r' U' r","R2 U' R2","R2 U R2", "r'", "r", "S'", "S"
             };
 
 
         private static int[,] triggerMoves = 
         {
-            {t0, t0, t0, t0},
-            {tR, tU, iR, t0},
-            {tR, dU, iR, t0},
-            {tR, iU, iR, t0},
-            {iR, iU, tR, t0},
-            {iR, tU, tR, t0},
-            {iR, dU, tR, t0},
-            {iR, tD, tR, t0},
-            {iR, iD, tR, t0},
-            {tR, tD, iR, t0},
-            {tR, iD, iR, t0},
-            {iR, iU, iR, t0},
-            {iR, tU, iR, t0},
-            {tR, iU, tR, t0},
-            {tR, tU, tR, t0},
-            {dR, iD, dR, t0},
-            {dR, tD, dR, t0},
-            {iR, tF, tR, t0},
-            {iR, iF, iR, t0},
-            {tF, t0, t0, t0},
-            {iF, t0, t0, t0},
-            {tR, t0, t0, t0},
-            {iR, t0, t0, t0},
-            {tU, t0, t0, t0},
-            {iU, t0, t0, t0},
-            {dU, t0, t0, t0},
-            {tD, t0, t0, t0},
-            {iD, t0, t0, t0},
+            {_0, _0, _0, _0},
+            {_R, _U, _iR, _0},
+            {_R, _U2, _iR, _0},
+            {_R, _iU, _iR, _0},
+            {_iR, _iU, _R, _0},
+            {_iR, _U, _R, _0},
+            {_iR, _U2, _R, _0},
+            {_iR, _D, _R, _0},
+            {_iR, _iD, _R, _0},
+            {_R, _D, _iR, _0},
+            {_R, _iD, _iR, _0},
+            {_iR, _iU, _iR, _0},
+            {_iR, _U, _iR, _0},
+            {_R, _iU, _R, _0},
+            {_R, _U, _R, _0},
+            {_R2, _iD, _R2, _0},
+            {_R2, _D, _R2, _0},
+            {_iR, _F, _R, _0},
+            {_iR, _iF, _R, _0},
+            {_F, _0, _0, _0},
+            {_iF, _0, _0, _0},
+            {_R, _0, _0, _0},
+            {_iR, _0, _0, _0},
+            {_U, _0, _0, _0},
+            {_iU, _0, _0, _0},
+            {_U2, _0, _0, _0},
+            {_D, _0, _0, _0},
+            {_iD, _0, _0, _0},
+
+            {_wR, _U, _iwR, _0},
+            {_wR, _iU, _iwR, _0},
+            {_iwR, _iU, _wR, _0},
+            {_iwR, _U, _wR, _0},
+
+            {_R2, _U, _R2, _0},
+            {_R2, _iU, _R2, _0},
+            {_wR, _0, _0, _0},
+            {_iwR, _0, _0, _0},
+            {_S, _0, _0, _0},
+            {_iS, _0, _0, _0},
         };
 
-        private static byte[,] allowedTriggers =
+        private static byte[] allTriggers = { tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr22, tr23, tr24, tr25, tr26, tr27, tr28, tr29, tr30, tr31, tr32, tr33, tr34, tr35, tr36 };
+        public bool StoreOnlyFirstMatchingTriggerSet { get; set; } = false;
+        public int KeyStoreSize => this.baseSet.Count;
+
+        private Dictionary<NCube, TriggerSetRef> baseSet = new Dictionary<NCube, TriggerSetRef>();
+        private List<Solution> solutions = new List<Solution>();
+
+        private NCube cube = NCube.Id;
+        private NCube bcube = NCube.Id;
+        private NCube targetCase;
+
+        public const UInt64 search1 = (tr32 << 24) | (tr00 << 18) | (tr11 << 12) | (tr23 << 6) | tr20;
+        public const UInt64 search2 = (tr32 << 18) | (tr00 << 12) | (tr11 << 6) | (tr23 << 0);
+        public const UInt64 search2b = (tr32 << 24) | (tr00 << 18) | (tr11 << 12) | (tr23 << 6);
+
+        public NPathFinder(bool storeOnlyFirstMatchingTriggerSet = false)
         {
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr22, tr23, tr24, tr25, tr26 },
-            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr16, tr17, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr16, tr17, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr16, tr17, tr08, tr09, tr12, tr13, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr16, tr17, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr16, tr17, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr16, tr17, tr06, tr07, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr16, tr17, tr06, tr07, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr18, tr19, tr20, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr18, tr19, tr20, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr20, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr20, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN},
-            {tr00, tr01, tr02, tr08, tr09, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr10, tr11, tr14, tr15, tr18, tr19, tr21, tr22, tr23, tr24, tr25, tr26, trNN, trNN, trNN, trNN, trNN, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr25, tr26, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr25, tr26, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr25, tr26, trNN, trNN, trNN},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr22, tr23, tr24, trNN, trNN},
-            {tr00, tr01, tr02, tr03, tr04, tr05, tr16, tr17, tr06, tr07, tr08, tr09, tr10, tr11, tr12, tr13, tr14, tr15, tr18, tr19, tr20, tr21, tr22, tr23, tr24, trNN, trNN},
-        };
+            this.StoreOnlyFirstMatchingTriggerSet = storeOnlyFirstMatchingTriggerSet;
+        }
 
-        public int Size => this.nstore.Count;
-        public int KeyStoreSize => this.keystore.Count;
-        public int KeySetSize => this.keyset.Count;
+        private int PerformTrigger(UInt32 t)
+        {
+            for (int i = 0; i < 4; ++i)
+            {
+                var turn = triggerMoves[t, i];
+                if (turn == _0)
+                {
+                    return i - 1;
+                }
+                this.cube.Turn(turn);
+            }
+            return 3;
+        }
 
-        private Dictionary<int, List<byte[]>> nstore = new Dictionary<int, List<byte[]>>();
-        private Dictionary<int, int> keystore = new Dictionary<int, int>();
-        private HashSet<int> keyset = new HashSet<int>();
+        private void PerformInverseTrigger(UInt32 t, int iStart)
+        {
+            for (int i = iStart; i >= 0; --i)
+            {
+                var turn = triggerMoves[t, i];
+                this.cube.Turn(turn ^ 1);
+            }
+        }
+
+        // Rule out "overloaded R" and "F followed by M"
 
         public void GenerateBaseSet(int depth)
         {
-            this.nstore.Clear();
-            this.keystore.Clear();
-            this.keyset.Clear();
+            Console.WriteLine("Generating base set...");
 
-            int level;
-            var cube = NCube.Id;
-            var bcube = NCube.Id;
-            keystore[cube.GetHashCode()] = 0;
-            keyset.Add(cube.GetHashCode());
-            nstore[cube.GetHashCode()] = new List<byte[]>() { new byte[0] };
+            this.baseSet.Clear();
+
+            this.baseSet[cube] = new TriggerSetRef(trNN);
 
             if (depth <= 0)
             {
                 return;
             }
 
-            int PerformTrigger(int t)
+            var queue = new List<UInt32>();
+            queue.Add((0 << 6) | trNN);
+            UInt32 qptr = 0;
+
+            while (qptr < queue.Count)
             {
-                for (int i = 0; i < 4; ++i)
+                int level = 0;
+                this.cube = NCube.Id;
+
+                var trs = new List<uint>();
+                UInt32 prev = queue[(int)qptr++];
+                UInt32 trigger = prev & 63;
+                prev >>= 6;
+                UInt32 lastTrigger = trigger;
+                while (trigger != trNN)
                 {
-                    var turn = triggerMoves[t, i];
-                    if (turn == t0)
+                    trs.Insert(0,trigger);
+                    lastTrigger = trigger;
+                    level++;
+                    if (prev == 0)
                     {
-                        return i - 1;
+                        break;
                     }
-                    cube.Turn(turn);
+                    prev = queue[(int)prev];
+                    trigger = prev & 63;
+                    prev >>= 6;
                 }
-                return 3;
-            }
 
-            void PerformInverseTrigger(int t, int iStart)
-            {
-                for (int i = iStart; i >= 0; --i)
+                UInt64 triggerSet = trNN;
+                foreach (var t in trs)
                 {
-                    var turn = triggerMoves[t, i];
-                    cube.Turn(turn ^ 1);
+                    triggerSet = (triggerSet | t) << 6;
+                    PerformTrigger(t);
                 }
-            }
 
-            void DFS(int llevel)//, int lastTrigger, byte[] lastPath)
-            {
+                this.bcube = this.cube;
+
                 for (int i = 0; i < numTriggers; ++i)
                 {
-                    var trigger = allowedTriggers[/*lastTrigger*/0, i]; // at least 559 with depth 2
+                    trigger = allTriggers[i];
                     if (trigger == trNN)
                     {
                         break;
                     }
 
-                    var max = PerformTrigger(trigger);
-                    var key = cube.GetHashCode();
-#if STORE
-                    var path = new byte[lastPath.Length+1];
-                    Array.Copy(lastPath, path, lastPath.Length);
-                    path[lastPath.Length] = trigger;
-                    
-                    if (!nstore.ContainsKey(key))
+                    PerformTrigger(trigger);
+
+                    if (!this.baseSet.ContainsKey(this.cube))
                     {
-                        nstore[key] = new List<byte[]>() { path };
+                        this.baseSet[this.cube] = new TriggerSetRef(triggerSet | trigger);
+
+                        if (level < depth - 1)
+                        {
+                            queue.Add(((qptr - 1) << 6) | trigger);
+                        }
                     }
                     else
                     {
-                        nstore[key].Add(path);
-                    }
-                    if (llevel < depth)
-                    {
-                        Rec(trigger, llevel + 1, path);
-                    }
-#else
-                    if (!this.keystore.ContainsKey(key))
-                    {
-                        this.keystore[key] = llevel;
-                        if (llevel < depth - 1)
+                        if (!this.StoreOnlyFirstMatchingTriggerSet)
                         {
-                            DFS(llevel + 1);//trigger, , lastPath);
+                            this.baseSet[this.cube] = new TriggerSetRef(triggerSet | trigger, this.baseSet[this.cube]);
                         }
                     }
-                    else if (this.keystore[key] > llevel)
-                    {
-                        this.keystore[key] = llevel;
-                        DFS(llevel + 1);//trigger, , lastPath);
-                    }
-#endif
 
-                    PerformInverseTrigger(trigger, max);
+                    this.cube = bcube;
                 }
             }
 
-            void BFS()
+            var process = System.Diagnostics.Process.GetCurrentProcess();
+            process.Refresh();
+            Console.WriteLine($"MemoryUsed = {process.WorkingSet64 / (1024)} kB");
+        }
+
+        public void PrintBaseSet()
+        {
+            foreach (var entry in this.baseSet)
             {
-                var queue = new List<int>();
-                queue.Add((0<<5) | trNN);
-                var qptr = 0;
-
-                while (qptr < queue.Count)
+                var v = entry.Value;
+                string s = TriggerSetToString(v.TriggerSet);
+                while (v.NextTriggerSet != null)
                 {
-                    level = 0;
-                    cube = NCube.Id;
+                    v = v.NextTriggerSet;
+                    s = TriggerSetToString(v.TriggerSet) + ", " + s;
+                }
+                Console.WriteLine($"{entry.Key.C}-{entry.Key.E}: {s}");
+            }
+        }
 
-                    int prev = queue[qptr++];
-                    int trigger = prev & 31;
-                    prev >>= 5;
-                    int lastTrigger = trigger;
-                    while (trigger != trNN)
+        public void FindPathsToCase(int depth)
+        {
+            Console.WriteLine("Finding solutions...");
+            this.solutions = new List<Solution>();
+
+            if (this.baseSet.ContainsKey(this.targetCase))
+            {
+                AddSolution(this.baseSet[this.targetCase], trNN);
+            }
+
+            var queue = new List<UInt32>();
+            queue.Add((trNN << 6) | trNN);
+            UInt32 qptr = 0;
+
+            while (qptr < queue.Count)
+            {
+                int level = 0;
+                this.cube = this.targetCase;
+
+                var trs = new List<uint>();
+                UInt32 prev = queue[(int)qptr++];
+                UInt32 trigger = prev & 63;
+                prev >>= 6;
+                UInt32 lastTrigger = trigger;
+                while (trigger != trNN)
+                {
+                    trs.Insert(0, trigger);
+                    lastTrigger = trigger;
+                    level++;
+                    if (prev == 0)
                     {
-                        PerformTrigger(trigger);
-                        level++;
-                        if (prev == 0)
-                        {
-                            break;
-                        }
-                        prev = queue[prev];
-                        trigger = prev & 31;
-                        prev >>= 5;
+                        break;
+                    }
+                    prev = queue[(int)prev];
+                    trigger = prev & 63;
+                    prev >>= 6;
+                }
+
+                UInt64 triggerSet = trNN;
+                foreach (var t in trs)
+                {
+                    triggerSet = (triggerSet | t) << 6;
+                    PerformTrigger(t);
+                }
+
+                this.bcube = this.cube;
+
+                for (int i = 0; i < numTriggers; ++i)
+                {
+                    trigger = allTriggers[i];
+
+                    PerformTrigger(trigger);
+
+                    if (this.baseSet.ContainsKey(this.cube))
+                    {
+                        AddSolution(this.baseSet[this.cube], triggerSet | trigger);
                     }
 
-                    bcube = cube;
-
-                    for (int i = 0; i < numTriggers; ++i)
+                    if (level < depth - 1)
                     {
-                        trigger = allowedTriggers[/*lastTrigger*/0, i];
-                        if (trigger == trNN)
+                        queue.Add(((qptr - 1) << 6) | trigger);
+                    }
+
+                    this.cube = bcube;
+                }
+            }
+
+            Console.WriteLine("Finished");
+        }
+
+        private void AddSolution(TriggerSetRef leftSets, UInt64 right)
+        {
+            var rightTurns = new List<byte>();
+
+            while (right != 0)
+            {
+                var idx = (byte)(right & 63);
+                for (int i = 3; i >= 0; --i)
+                {
+                    var move = triggerMoves[idx, i];
+                    if (move == _0)
+                    {
+                        continue;
+                    }
+                    rightTurns.Insert(0, (byte)move);
+                }
+                right >>= 6;
+            }
+
+            while (leftSets != null)
+            {
+                var left = leftSets.TriggerSet;
+                leftSets = leftSets.NextTriggerSet;
+
+                var turns = new List<byte>(rightTurns);
+                
+                while (left != 0)
+                {
+                    var idx = (byte)(left & 63);
+                    for (int i = 3; i >= 0; --i)
+                    {
+                        var move = triggerMoves[idx, i];
+                        if (move == _0)
                         {
+                            continue;
+                        }
+                        turns.Add((byte)(move ^ 1));
+                    }
+                    left >>= 6;
+                }
+
+                // Remove things like R R  or U' U2
+
+                // TBD D' U D , D U D' etc
+                do
+                {
+                    int t = 0;
+                    var culled = new List<byte>();
+                    while (t < turns.Count)
+                    {
+                        if (turns[t] > _U2 && turns[t] < _wU)
+                        {
+                            turns[t] = (byte)(turns[t] & ~1);
+                        }
+
+                        if (t == turns.Count - 1)
+                        {
+                            culled.Add(turns[t]);
                             break;
                         }
 
-                        var max = PerformTrigger(trigger);
-                        var key = cube.GetHashCode();
-
-                        if (!this.keyset.Contains(key))
+                        if (turns[t] == (turns[t + 1] ^ 1))
                         {
-                            this.keyset.Add(key);
-                            if (level < depth - 1)
+                            t += 2;
+                        }
+                        else if (turns[t] == turns[t + 1])
+                        {
+                            if (turns[t] < _U2)
                             {
-                                queue.Add(((qptr - 1)<<5) | trigger);
+                                culled.Add((byte)(_U2 + (turns[t] & ~1)));
+                                t += 2;
+                            }
+                            else if (turns[t] < _wU)
+                            {
+                                t += 2;
+                            }
+                            else
+                            {
+                                culled.Add(turns[t]);
+                                t += 1;
                             }
                         }
-
-                        cube = bcube;
+                        else if (turns[t] < _U2 && (turns[t] & ~1) + _U2 == (turns[t + 1] & ~1))
+                        {
+                            culled.Add((byte)(turns[t] ^ 1));
+                            t += 2;
+                        }
+                        else if (turns[t + 1] < _U2 && (turns[t + 1] & ~1) + _U2 == (turns[t] & ~1))
+                        {
+                            culled.Add((byte)(turns[t + 1] ^ 1));
+                            t += 2;
+                        }
+                        else
+                        {
+                            culled.Add(turns[t]);
+                            t += 1;
+                        }
                     }
 
+                    if (culled.Count == turns.Count)
+                    {
+                        break;
+                    }
+                    turns = culled;
                 }
+                while (true);
 
-                var process = System.Diagnostics.Process.GetCurrentProcess();
-                process.Refresh();
-                Console.WriteLine($"MemoryUsed = {process.WorkingSet64 / (1024)} kB");
+                var solution = new Solution(turns.ToArray());
+                if (!this.solutions.Contains(solution))
+                {
+                    this.solutions.Add(solution);
+
+                    foreach (var turn in turns)
+                    {
+                        Console.Write(NCube.turnNames[turn] + " ");
+                    }
+
+                    Console.WriteLine();
+                    Console.WriteLine();
+                }
+            }
+        }
+
+        // Fix D U D or D U2 D or D U2 D2 or D U D' etc
+
+        public static string TriggerSetToInverseString(UInt64 triggerSet)
+        {
+            // 68
+            string triggerString = string.Empty;
+            while (triggerSet != 0)
+            {
+                triggerString = triggerString + " - " + inverseTriggerNames[triggerSet & 63];
+                triggerSet >>= 6;
+            }
+            return triggerString;
+        }
+
+        public static string TriggerSetToString(UInt64 triggerSet)
+        {
+            // 68
+            string triggerString = string.Empty;
+            if (triggerSet != 0)
+            {
+                triggerString = triggerNames[triggerSet & 63];
+                triggerSet >>= 6;
+                while (triggerSet != 0)
+                {
+                    triggerString = triggerNames[triggerSet & 63] + " - " + triggerString;
+                    triggerSet >>= 6;
+                }
             }
 
+            return triggerString;
+        }
 
-            BFS();
-            // DFS(0);// trNN, 0, new byte[0]);
+        //private void DisplayAlg(int key1, UInt64 left, UInt64 right)
+        //{
+        //    Console.WriteLine($"[{key1}] {TriggerSetToString(right)}  >>  {TriggerSetToInverseString(left)}");
+
+        //    if (++this.algsDisplayed % 16 == 0)
+        //    {
+        //        Console.ReadKey();
+        //    }
+        //}
+
+        public void SetCaseFromInverse(int[] turns)
+        {
+            this.targetCase = NCube.Id;
+            foreach (var turn in turns.Reverse())
+            {
+                this.targetCase.Turn(turn ^ 1);
+            }
         }
 
         public void GenerateFile()
         {
-            var fullPath = DateTime.Now.ToString("ddMMyyyy_HHmmss") + ".txt";
-            using (StreamWriter writer = new StreamWriter(fullPath))
-            {
-                foreach (var pair in nstore)
-                {
-                    writer.Write($"{pair.Key}: ");
-                    foreach (var trigger in pair.Value)
-                    {
-                        writer.Write($"{String.Join(", ", trigger.Select(a => triggerNames[a]))}  |  ");
-                    }
-                    writer.WriteLine();
+            //var fullPath = DateTime.Now.ToString("ddMMyyyy_HHmmss") + ".txt";
+            //using (StreamWriter writer = new StreamWriter(fullPath))
+            //{
+            //    foreach (var pair in nstore)
+            //    {
+            //        writer.Write($"{pair.Key}: ");
+            //        foreach (var trigger in pair.Value)
+            //        {
+            //            writer.Write($"{String.Join(", ", trigger.Select(a => triggerNames[a]))}  |  ");
+            //        }
+            //        writer.WriteLine();
 
-                }
-            }
+            //    }
+            //}
         }
     }
 }
@@ -363,4 +611,55 @@ triggers = {
 "D":["R U R'","R U2 R'","R U' R'","R' U' R","R' U R","R' U2 R","R' F R","R' F' R'","R' D R","R' D' R","R D R'","R D' R'","R' U' R'","R' U R'","R U' R","R U R","R2 D' R2","R2 D R2","F","F'","R","R'","U","U'","U2"],
 "D'":["R U R'","R U2 R'","R U' R'","R' U' R","R' U R","R' U2 R","R' F R","R' F' R'","R' D R","R' D' R","R D R'","R D' R'","R' U' R'","R' U R'","R U' R","R U R","R2 D' R2","R2 D R2","F","F'","R","R'","U","U'","U2"],
 "k":["R U R'","R U2 R'","R U' R'","R' U' R","R' U R","R' U2 R","R' F R","R' F' R'","R' D R","R' D' R","R D R'","R D' R'","R' U' R'","R' U R'","R U' R","R U R","R2 D' R2","R2 D R2","F","F'","R","R'","U","U'","U2","D","D'"]}
+
+
+            void DFS(int llevel)//, int lastTrigger, byte[] lastPath)
+            {
+                for (int i = 0; i < numTriggers; ++i)
+                {
+                    var trigger = allowedTriggers[lastTrigger0, i]; // at least 559 with depth 2
+if (trigger == trNN)
+{
+    break;
+}
+
+var max = PerformTrigger(trigger);
+var key = cube.GetHashCode();
+#if STORE
+                    var path = new byte[lastPath.Length+1];
+                    Array.Copy(lastPath, path, lastPath.Length);
+                    path[lastPath.Length] = trigger;
+                    
+                    if (!nstore.ContainsKey(key))
+                    {
+                        nstore[key] = new List<byte[]>() { path };
+                    }
+                    else
+                    {
+                        nstore[key].Add(path);
+                    }
+                    if (llevel < depth)
+                    {
+                        Rec(trigger, llevel + 1, path);
+                    }
+#else
+if (!this.keystore.ContainsKey(key))
+{
+    this.keystore[key] = llevel;
+    if (llevel < depth - 1)
+    {
+        DFS(llevel + 1);//trigger, , lastPath);
+    }
+}
+else if (this.keystore[key] > llevel)
+{
+    this.keystore[key] = llevel;
+    DFS(llevel + 1);//trigger, , lastPath);
+}
+#endif
+
+PerformInverseTrigger(trigger, max);
+                }
+            }
+
 */
