@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Cubesolver
 {     
-    // The original implementation used for the CubeSolver
-    // Contains positions and orientations for all edges and corners, also the nth one which is redundant
-    // Also contains colors etc. for printing out and support for wide moves and E/S/M moves
-    public struct NCube //: IEquatable<NCube>
+    // A simple version of NCube
+    // to be used in experiments with shaders
+    public struct SCube //: IEquatable<NCube>
     {
         // Corner indices
         public const int pUBL = 0;
@@ -15,7 +16,7 @@ namespace Cubesolver
         public const int pDLB = 4;
         public const int pDBR = 5;
         public const int pDRF = 6;
-        public const int pDFL = 7;
+        public const int pDFL = 7; // Inferred
 
         // Corner indices times 6
         public const int p6UBL = pUBL * 6;
@@ -25,8 +26,9 @@ namespace Cubesolver
         public const int p6DLB = pDLB * 6;
         public const int p6DBR = pDBR * 6;
         public const int p6DRF = pDRF * 6;
-        public const int p6DFL = pDFL * 6;
+        public const int p6DFL = pDFL * 6; // Inferred
 
+        // Corner indices left shifted
         public const UInt64 ps6UBL = 1UL << 3;
         public const UInt64 ps6URB = 1UL << 9;
         public const UInt64 ps6UFR = 1UL << 15;
@@ -34,7 +36,7 @@ namespace Cubesolver
         public const UInt64 ps6DLB = 1UL << 27;
         public const UInt64 ps6DBR = 1UL << 33;
         public const UInt64 ps6DRF = 1UL << 39;
-        public const UInt64 ps6DFL = 1UL << 45;
+        public const UInt64 ps6DFL = 1UL << 45; // Inferred
 
         // Edge indices
         public const int pUB = 0;
@@ -48,7 +50,7 @@ namespace Cubesolver
         public const int pDB = 8;
         public const int pDR = 9;
         public const int pDF = 10;
-        public const int pDL = 11;
+        public const int pDL = 11; // Inferred
 
         // Edge indices times 5
         public const int p5UB = pUB * 5;
@@ -62,7 +64,7 @@ namespace Cubesolver
         public const int p5DB = pDB * 5;
         public const int p5DR = pDR * 5;
         public const int p5DF = pDF * 5;
-        public const int p5DL = pDL * 5;
+        public const int p5DL = pDL * 5; // Inferred
 
         // Faces
         public const byte fB = 0;
@@ -73,54 +75,36 @@ namespace Cubesolver
         public const byte fL = 5;
 
         // Turns
-        public const int _0 = -1;
-        public const int _U = 0;
-        public const int _iU = 1;
-        public const int _F = 2;
-        public const int _iF = 3;
-        public const int _R = 4;
-        public const int _iR = 5;
-        public const int _L = 6;
-        public const int _iL = 7;
-        public const int _B = 8;
-        public const int _iB = 9;
-        public const int _D = 10;
-        public const int _iD = 11;
-        public const byte _U2 = 12;
-        public const int _iU2 = 13;
-        public const int _F2 = 14;
-        public const int _iF2 = 15;
-        public const int _R2 = 16;
-        public const int _iR2 = 17;
-        public const int _L2 = 18;
-        public const int _iL2 = 19;
-        public const int _B2 = 20;
-        public const int _iB2 = 21;
-        public const int _D2 = 22;
-        public const int _iD2 = 23;
+        public const int tNone = -1;
+        public const int tU = 0;
+        public const int t_U = 1;
+        public const int tF = 2;
+        public const int t_F = 3;
+        public const int tR = 4;
+        public const int t_R = 5;
+        public const int tL = 6;
+        public const int t_L = 7;
+        public const int tB = 8;
+        public const int t_B = 9;
+        public const int tD = 10;
+        public const int t_D = 11;
+        public const byte tU2 = 12;
+        public const int t_U2 = 13;
+        public const int tF2 = 14;
+        public const int t_F2 = 15;
+        public const int tR2 = 16;
+        public const int t_R2 = 17;
+        public const int tL2 = 18;
+        public const int t_L2 = 19;
+        public const int tB2 = 20;
+        public const int t_B2 = 21;
+        public const int tD2 = 22;
+        public const int t_D2 = 23;
 
-        public const int _wU = 24;
-        public const int _iwU = 25;
-        public const int _wF = 26;
-        public const int _iwF = 27;
-        public const int _wR = 28;
-        public const int _iwR = 29;
-        public const int _wL = 30;
-        public const int _iwL = 31;
-        public const int _wB = 32;
-        public const int _iwB = 33;
-        public const int _wD = 34;
-        public const int _iwD = 35;
+        public static int[] AllTurns = { tU, t_U, tU2, tD, t_D, tD2, tF, t_F, tF2, tB, t_B, tB2, tR, t_R, tR2, tL, t_L, tL2 };
 
-        public const int _M = 36;
-        public const int _iM = 37;
-        public const int _E = 38;
-        public const int _iE = 39;
-        public const int _S = 40;
-        public const int _iS = 41;
-
-        private const UInt64 cornerMask = ((1UL << 6) - 1);
-        private const UInt64 edgeMask = ((1UL << 5) - 1);
+        private const UInt64 CornerMask = ((1UL << 6) - 1);
+        private const UInt64 EdgeMask = ((1UL << 5) - 1);
 
         // Corner orientation:
         // 0 = U or D sticker has U or D color
@@ -153,15 +137,15 @@ namespace Cubesolver
         // OPPPP ... OPPPP OPPPP OPPPP
         public UInt64 E;
 
-        public NCube(UInt64 c, UInt64 e)
+        public SCube(UInt64 c, UInt64 e)
         {
             this.C = c;
             this.E = e;
         }
 
-        public static NCube Id = NCube.MakeId();
+        public static SCube Id = SCube.MakeId();
 
-        public static NCube MakeId()
+        public static SCube MakeId()
         {
             var c = 0LU;
             var i = 7LU;
@@ -183,43 +167,26 @@ namespace Cubesolver
             }
             while (i > 0UL);
 
-            return new NCube(c, e);
+            return new SCube(c, e);
         }
 
         void SwapCorners(int p1, int p2)
         {
-            var xor = (this.C >> p1 ^ this.C >> p2) & cornerMask;
+            var xor = (this.C >> p1 ^ this.C >> p2) & CornerMask;
             xor = (xor << p1) | (xor << p2);
             this.C ^= xor;
         }
 
         void SwapEdges(int p1, int p2)
         {
-            var xor = (this.E >> p1 ^ this.E >> p2) & edgeMask;
+            var xor = (this.E >> p1 ^ this.E >> p2) & EdgeMask;
             xor = (xor << p1) | (xor << p2);
             this.E ^= xor;
         }
 
-        void OrientEdges(int p1, int p2, int p3, int p4)
+        void OrientEdges(int f1, int f2, int f3, int f4)
         {
-            this.E ^= (1UL << p1 | 1UL << p2 | 1UL << p3 | 1UL << p4) << 4;
-        }
-
-        void OrientCorners_CCW(UInt64 p1, UInt64 p2)
-        {
-            var one = p1 | p2;
-            var mask1 = ~(one << 2);
-            var mask2 = one << 1;
-            this.C = (this.C + one + ((this.C & mask2) >> 1)) & mask1;
-        }
-
-        void OrientCorners_CW(UInt64 p1, UInt64 p2)
-        {
-            var one = p1 | p2;
-            var mask1 = ~(one << 2);
-            var mask2 = one << 1;
-            var three = this.C + (mask2 | one);
-            this.C = (three - ((three & mask2) >> 1) ) & mask1;
+            this.E ^= (1UL << f1 | 1UL << f2 | 1UL << f3 | 1UL << f4) << 4;
         }
 
         void OrientCorners(UInt64 ccw1, UInt64 ccw2, UInt64 cw1, UInt64 cw2)
@@ -233,11 +200,19 @@ namespace Cubesolver
             this.C = (three - ((three & cwx2) >> 1)) & mask;
         }
 
+        public void Turn(IEnumerable<int> turns)
+        {
+            foreach (var turn in turns)
+            {
+                Turn(turn);
+            }
+        }
+
         public void Turn(int t)
         {
             switch (t)
             {
-                case _U:
+                case tU:
                     SwapCorners(p6UBL, p6URB);
                     SwapCorners(p6UBL, p6UFR);
                     SwapCorners(p6UBL, p6ULF);
@@ -245,7 +220,7 @@ namespace Cubesolver
                     SwapEdges(p5UB, p5UF);
                     SwapEdges(p5UB, p5UL);
                     break;
-                case _iU:
+                case t_U:
                     SwapCorners(p6UBL, p6ULF);
                     SwapCorners(p6UBL, p6UFR);
                     SwapCorners(p6UBL, p6URB);
@@ -253,7 +228,7 @@ namespace Cubesolver
                     SwapEdges(p5UB, p5UF);
                     SwapEdges(p5UB, p5UR);
                     break;
-                case _D:
+                case tD:
                     SwapCorners(p6DLB, p6DFL);
                     SwapCorners(p6DLB, p6DRF);
                     SwapCorners(p6DLB, p6DBR);
@@ -261,7 +236,7 @@ namespace Cubesolver
                     SwapEdges(p5DB, p5DF);
                     SwapEdges(p5DB, p5DR);
                     break;
-                case _iD:
+                case t_D:
                     SwapCorners(p6DLB, p6DBR);
                     SwapCorners(p6DLB, p6DRF);
                     SwapCorners(p6DLB, p6DFL);
@@ -269,7 +244,7 @@ namespace Cubesolver
                     SwapEdges(p5DB, p5DF);
                     SwapEdges(p5DB, p5DL);
                     break;
-                case _F:
+                case tF:
                     SwapCorners(p6ULF, p6UFR);
                     SwapCorners(p6ULF, p6DRF);
                     SwapCorners(p6ULF, p6DFL);
@@ -279,7 +254,7 @@ namespace Cubesolver
                     OrientEdges(p5UF, p5FR, p5DF, p5FL);
                     OrientCorners(ps6ULF, ps6DRF, ps6UFR, ps6DFL);
                     break;
-                case _iF:
+                case t_F:
                     SwapCorners(p6ULF, p6DFL);
                     SwapCorners(p6ULF, p6DRF);
                     SwapCorners(p6ULF, p6UFR);
@@ -289,7 +264,7 @@ namespace Cubesolver
                     OrientEdges(p5UF, p5FR, p5DF, p5FL);
                     OrientCorners(ps6ULF, ps6DRF, ps6UFR, ps6DFL);
                     break;
-                case _B:
+                case tB:
                     SwapCorners(p6UBL, p6DLB);
                     SwapCorners(p6UBL, p6DBR);
                     SwapCorners(p6UBL, p6URB);
@@ -299,7 +274,7 @@ namespace Cubesolver
                     OrientEdges(p5UB, p5BL, p5DB, p5BR);
                     OrientCorners(ps6DLB, ps6URB, ps6UBL, ps6DBR);
                     break;
-                case _iB:
+                case t_B:
                     SwapCorners(p6UBL, p6URB);
                     SwapCorners(p6UBL, p6DBR);
                     SwapCorners(p6UBL, p6DLB);
@@ -309,7 +284,7 @@ namespace Cubesolver
                     OrientEdges(p5UB, p5BL, p5DB, p5BR);
                     OrientCorners(ps6DLB, ps6URB, ps6UBL, ps6DBR);
                     break;
-                case _R:
+                case tR:
                     SwapCorners(p6UFR, p6URB);
                     SwapCorners(p6UFR, p6DBR);
                     SwapCorners(p6UFR, p6DRF);
@@ -318,7 +293,7 @@ namespace Cubesolver
                     SwapEdges(p5UR, p5FR);
                     OrientCorners(ps6UFR, ps6DBR, ps6URB, ps6DRF);
                     break;
-                case _iR:
+                case t_R:
                     SwapCorners(p6UFR, p6DRF);
                     SwapCorners(p6UFR, p6DBR);
                     SwapCorners(p6UFR, p6URB);
@@ -327,7 +302,7 @@ namespace Cubesolver
                     SwapEdges(p5UR, p5BR);
                     OrientCorners(ps6UFR, ps6DBR, ps6URB, ps6DRF);
                     break;
-                case _L:
+                case tL:
                     SwapCorners(p6UBL, p6ULF);
                     SwapCorners(p6UBL, p6DFL);
                     SwapCorners(p6UBL, p6DLB);
@@ -336,7 +311,7 @@ namespace Cubesolver
                     SwapEdges(p5UL, p5BL);
                     OrientCorners(ps6UBL, ps6DFL, ps6ULF, ps6DLB);
                     break;
-                case _iL:
+                case t_L:
                     SwapCorners(p6UBL, p6DLB);
                     SwapCorners(p6UBL, p6DFL);
                     SwapCorners(p6UBL, p6ULF);
@@ -345,128 +320,55 @@ namespace Cubesolver
                     SwapEdges(p5UL, p5FL);
                     OrientCorners(ps6UBL, ps6DFL, ps6ULF, ps6DLB);
                     break;
-                case _U2:
-                case _iU2:
+                case tU2:
+                case t_U2:
                     SwapCorners(p6UBL, p6UFR);
                     SwapCorners(p6URB, p6ULF);
                     SwapEdges(p5UB, p5UF);
                     SwapEdges(p5UR, p5UL);
                     break;
-                case _D2:
-                case _iD2:
+                case tD2:
+                case t_D2:
                     SwapCorners(p6DLB, p6DRF);
                     SwapCorners(p6DFL, p6DBR);
                     SwapEdges(p5DB, p5DF);
                     SwapEdges(p5DL, p5DR);
                     break;
-                case _F2:
-                case _iF2:
+                case tF2:
+                case t_F2:
                     SwapCorners(p6ULF, p6DRF);
                     SwapCorners(p6UFR, p6DFL);
                     SwapEdges(p5UF, p5DF);
                     SwapEdges(p5FR, p5FL);
                     break;
-                case _B2:
-                case _iB2:
+                case tB2:
+                case t_B2:
                     SwapCorners(p6UBL, p6DBR);
                     SwapCorners(p6DLB, p6URB);
                     SwapEdges(p5UB, p5DB);
                     SwapEdges(p5BL, p5BR);
                     break;
-                case _R2:
-                case _iR2:
+                case tR2:
+                case t_R2:
                     SwapCorners(p6UFR, p6DBR);
                     SwapCorners(p6URB, p6DRF);
                     SwapEdges(p5UR, p5DR);
                     SwapEdges(p5BR, p5FR);
                     break;
-                case _L2:
-                case _iL2:
+                case tL2:
+                case t_L2:
                     SwapCorners(p6UBL, p6DFL);
                     SwapCorners(p6ULF, p6DLB);
                     SwapEdges(p5UL, p5DL);
                     SwapEdges(p5FL, p5BL);
                     break;
                 
-                case _wR:
-                    // R
-                    SwapCorners(p6UFR, p6URB);
-                    SwapCorners(p6UFR, p6DBR);
-                    SwapCorners(p6UFR, p6DRF);
-                    SwapEdges(p5UR, p5BR);
-                    SwapEdges(p5UR, p5DR);
-                    SwapEdges(p5UR, p5FR);
-                    OrientCorners(ps6UFR, ps6DBR, ps6URB, ps6DRF);
-
-                    // M'
-                    SwapEdges(p5UF, p5UB);
-                    SwapEdges(p5UF, p5DB);
-                    SwapEdges(p5UF, p5DF);
-                    OrientEdges(p5UF, p5UB, p5DB, p5DF);
-                    break;
-                case _iwR:
-                    // R'
-                    SwapCorners(p6UFR, p6DRF);
-                    SwapCorners(p6UFR, p6DBR);
-                    SwapCorners(p6UFR, p6URB);
-                    SwapEdges(p5UR, p5FR);
-                    SwapEdges(p5UR, p5DR);
-                    SwapEdges(p5UR, p5BR);
-                    OrientCorners(ps6UFR, ps6DBR, ps6URB, ps6DRF);
-
-                    // M
-                    SwapEdges(p5UF, p5DF);
-                    SwapEdges(p5UF, p5DB);
-                    SwapEdges(p5UF, p5UB);
-                    OrientEdges(p5UF, p5UB, p5DB, p5DF);
-                    break;
-                case _M:
-                    SwapEdges(p5UF, p5DF);
-                    SwapEdges(p5UF, p5DB);
-                    SwapEdges(p5UF, p5UB);
-                    OrientEdges(p5UF, p5UB, p5DB, p5DF);
-                    break;
-                case _iM:
-                    SwapEdges(p5UF, p5UB);
-                    SwapEdges(p5UF, p5DB);
-                    SwapEdges(p5UF, p5DF);
-                    OrientEdges(p5UF, p5UB, p5DB, p5DF);
-                    break;
-                case _E:
-                    SwapEdges(p5FL, p5FR);
-                    SwapEdges(p5FL, p5BR);
-                    SwapEdges(p5FL, p5BL);
-                    OrientEdges(p5FL, p5BL, p5BR, p5FR);
-                    break;
-                case _iE:
-                    SwapEdges(p5FL, p5BL);
-                    SwapEdges(p5FL, p5BR);
-                    SwapEdges(p5FL, p5FR);
-                    OrientEdges(p5FL, p5BL, p5BR, p5FR);
-                    break;
-                case _S:
-                    SwapEdges(p5UL, p5UR);
-                    SwapEdges(p5UL, p5DR);
-                    SwapEdges(p5UL, p5DL);
-                    OrientEdges(p5UL, p5DL, p5DR, p5UR);
-                    break;
-                case _iS:
-                    SwapEdges(p5UL, p5DL);
-                    SwapEdges(p5UL, p5DR);
-                    SwapEdges(p5UL, p5UR);
-                    OrientEdges(p5UL, p5DL, p5DR, p5UR);
-                    break;
             }
         }
-
         public override string ToString()
         {
             return this.GetHashCode().ToString();
         }
 
-        //public override int GetHashCode()
-        //{
-        //    return this.E.GetHashCode() ^ this.C.GetHashCode();
-        //}
     }
 }

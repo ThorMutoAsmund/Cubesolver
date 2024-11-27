@@ -138,7 +138,7 @@ namespace Cubesolver
         public int KeyStoreSize => this.baseSet.Count;
 
         private Dictionary<NCube, TriggerSetRef> baseSet = new Dictionary<NCube, TriggerSetRef>();
-        private List<Solution> solutions = new List<Solution>();
+        private List<NSolution> solutions = new List<NSolution>();
 
         private NCube cube = NCube.Id;
         private NCube bcube = NCube.Id;
@@ -282,7 +282,7 @@ namespace Cubesolver
         public void FindPathsToCase(int depth)
         {
             Console.WriteLine("Finding solutions...");
-            this.solutions = new List<Solution>();
+            this.solutions = new List<NSolution>();
 
             if (this.baseSet.ContainsKey(this.targetCase))
             {
@@ -456,14 +456,14 @@ namespace Cubesolver
                 }
                 while (true);
 
-                var solution = new Solution(turns.ToArray());
+                var solution = new NSolution(turns.ToArray());
                 if (!this.solutions.Contains(solution))
                 {
                     this.solutions.Add(solution);
 
                     foreach (var turn in turns)
                     {
-                        Console.Write(NCube.turnNames[turn] + " ");
+                        Console.Write(Visualizer.TurnNames[turn] + " ");
                     }
 
                     Console.WriteLine();
