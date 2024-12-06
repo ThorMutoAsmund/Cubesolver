@@ -12,7 +12,7 @@ namespace Cubesolver
     public class STestProgram
     {
         private const int GodsNumber = 20;
-        private const int ForwardDepth = 7;
+        private const int ForwardDepth = 6;
         private const int ReverseDepth = GodsNumber - ForwardDepth;
 
 
